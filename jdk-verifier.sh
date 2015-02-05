@@ -1,7 +1,9 @@
 #!/bin/bash
 
+SCRIPT_NAME=`basename $0`
+
 if [ "$#" -ne 1 ] || ! [ -d "$1" ]; then
-  echo "Usage: $0 JAVA_HOME" >&2
+  echo "Usage: $SCRIPT_NAME JAVA_HOME" >&2
   exit 1
 fi
 
