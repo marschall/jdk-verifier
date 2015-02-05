@@ -18,6 +18,3 @@ grep "^securerandom\\.source" $1/jre/lib/security/java.security
 
 unzip -c $1/jre/lib/security/local_policy.jar default_local.policy
 
-unzip -c $1/jre/lib/security/US_export_policy.jar default_US_export.policy
-
-
