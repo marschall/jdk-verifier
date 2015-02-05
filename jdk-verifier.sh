@@ -7,43 +7,54 @@ JCONSOLE_EXECUTABLE='bin/jconsole'
 SECURITY_PROPERTIES='lib/security/java.security'
 LOCAL_POLICY='lib/security/local_policy.jar'
 
-if [ "$#" -ne 1 ] || ! [ -d "$1" ]; then
-  echo "Usage: $SCRIPT_NAME JAVA_HOME" >&2
-  exit 1
-fi
+print_usage_and_exit() {
 
-if [ ! -f "$1/$JAVA_EXECUTABLE" ]; then
-  echo "$1/bin/java not found $1 is not a JDK installation folder" >&2
-  exit 1
-fi
+[ -n "$1" ] && echo "$1"
 
-if [ ! -f "$1/$SECURITY_PROPERTIES" ] && [ ! -f "$1/jre/$SECURITY_PROPERTIES" ]; then
-  echo "[jre/]$SECURITY_PROPERTIES not found. $1 is not a Java 8 installation folder" >&2
-  exit 1
-fi
+  cat << EOF
 
-if [ ! -f "$1/$LOCAL_POLICY" ] && [ ! -f "$1/jre/$LOCAL_POLICY" ]; then
-  echo "[jre]/$LOCAL_POLICY not found. $1 is not a JDK 8 installation folder" >&2
-  exit 1
-fi
+Usage: $SCRIPT_NAME <javadir>
+   or: $SCRIPT_NAME -h|--help
 
+  <javadir>: Directory containing the Java installation
+  -h, --help: Prints this help message
+EOF
 
+  [ -n "$1" ] && exit 1
+  exit 0
+}
 
-"$1/$JAVA_EXECUTABLE" -version
-
-if [ ! -f "$1/$JCMD_EXECUTABLE" ]; then
-  echo "JRE"
-elif [ ! -f "$1/$JCONSOLE_EXECUTABLE" ]; then
-  echo "server JRE"
-else
-  echo "full JDK"
-fi
-
-grep "^securerandom\\.source" "$1"/jre/lib/security/java.security
+# Input validation
+[ "$#" -ne 1 ] && print_usage_and_exit "Wrong number of arguments"
+[ "$1" = "-h" ] || [ "$1" = "--help" ] && print_usage_and_exit
+[ ! -d "$1" ] && print_usage_and_exit "$1 is not a directory"
 
 if [ -d "$1/jre" ]; then
-  unzip -qc "$1"/jre/lib/security/local_policy.jar default_local.policy
-else
-  unzip -qc "$1"/lib/security/local_policy.jar default_local.policy
+  SECURITY_PROPERTIES="jre/$SECURITY_PROPERTIES"
+  LOCAL_POLICY="jre/$LOCAL_POLICY"
 fi
+
+NOT_JAVA8_MSG="'$1' is not a Java 8 installation folder"
+[ ! -f "$1/$JAVA_EXECUTABLE" ] &&  print_usage_and_exit "'$JAVA_EXECUTABLE' not found. $NOT_JAVA8_MSG"
+[ ! -f "$1/$SECURITY_PROPERTIES" ] && print_usage_and_exit "'$SECURITY_PROPERTIES' not found. $NOT_JAVA8_MSG"
+[ ! -f "$1/$LOCAL_POLICY" ] && print_usage_and_exit "'$LOCAL_POLICY' not found. $NOT_JAVA8_MSG"
+
+# Main
+"$1/$JAVA_EXECUTABLE" -version
+
+echo
+if [ ! -f "$1/$JCMD_EXECUTABLE" ]; then
+  echo "Java Installation: JRE"
+elif [ ! -f "$1/$JCONSOLE_EXECUTABLE" ]; then
+  echo "Java Installation: server JRE"
+else
+  echo "Java Installation: full JDK"
+fi
+
+echo
+grep "^securerandom\\.source" "$1/$SECURITY_PROPERTIES"
+
+echo
+echo "default_local.policy"
+unzip -qc "$1/$LOCAL_POLICY" default_local.policy
 
