@@ -5,10 +5,26 @@ if [ "$#" -ne 1 ] || ! [ -d "$1" ]; then
   exit 1
 fi
 
+if [ ! -f $1/bin/java ]; then
+  echo "$1/bin/java not found $1 is not a JDK installation folder" >&2
+  exit 1
+fi
+
+if [ ! -f $1/jre/lib/security/java.security ]; then
+  echo "$1/jre/lib/security/java.security not found $1 is not a JDK 8 installation folder" >&2
+  exit 1
+fi
+
+if [ ! -f $1/jre/lib/security/local_policy.jar ]; then
+  echo "$1/jre/lib/security/local_policy.jar not found $1 is not a JDK 8 installation folder" >&2
+  exit 1
+fi
+
+
+
 $1/bin/java -version
 
-# use jmap to check if we're dealing with a server jre
-if [ -f $1/bin/jmap ]; then
+if [ -f $1/bin/javadoc ]; then
   echo "full JDK"
 else
   echo "server JRE"
